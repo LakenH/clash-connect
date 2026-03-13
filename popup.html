@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <h1 data-i18n="title">Clash Connect</h1>
+
+    <div class="toggle-row">
+      <span class="label" data-i18n="proxy">Proxy</span>
+      <label class="switch">
+        <input type="checkbox" id="proxyToggle">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="toggle-row">
+      <span class="label" data-i18n="timezoneSpoof">Timezone Spoof</span>
+      <label class="switch">
+        <input type="checkbox" id="tzToggle">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div id="statusSection" class="status-section hidden">
+      <div class="status-row">
+        <span class="status-label" data-i18n="ip">IP</span>
+        <span id="exitIP" class="status-value">—</span>
+      </div>
+      <div class="status-row">
+        <span class="status-label" data-i18n="location">Location</span>
+        <span id="location" class="status-value">—</span>
+      </div>
+      <div class="status-row">
+        <span class="status-label" data-i18n="timezone">Timezone</span>
+        <span id="timezone" class="status-value">—</span>
+      </div>
+      <div class="status-row">
+        <span class="status-label" data-i18n="locale">Locale</span>
+        <span id="locale" class="status-value">—</span>
+      </div>
+      <button id="refreshBtn" class="btn-refresh" data-i18n="refresh" data-i18n-title="refreshTitle">Refresh</button>
+    </div>
+
+    <div id="errorBox" class="error-box hidden"></div>
+    <div id="spinner" class="spinner hidden"></div>
+
+    <button id="settingsToggle" class="settings-toggle" data-i18n="settingsExpand">Settings ▸</button>
+
+    <div id="settingsSection" class="settings-section hidden">
+      <div class="field">
+        <label for="proxyHost" data-i18n="host">Host</label>
+        <input type="text" id="proxyHost" placeholder="127.0.0.1">
+      </div>
+      <div class="field">
+        <label for="proxyPort" data-i18n="port">Port</label>
+        <input type="number" id="proxyPort" placeholder="7890">
+      </div>
+      <div class="field">
+        <label for="bypassList"><span data-i18n="bypassList">Bypass List</span> <span class="hint" data-i18n="bypassHint">(one per line)</span></label>
+        <textarea id="bypassList" rows="4" placeholder="localhost&#10;127.0.0.1&#10;*.example.com"></textarea>
+      </div>
+      <div class="field">
+        <label for="iconColor" data-i18n="iconColor">Icon Color</label>
+        <select id="iconColor">
+          <option value="dark" data-i18n="iconDark">Dark</option>
+          <option value="white" data-i18n="iconLight">Light</option>
+        </select>
+      </div>
+      <button id="saveSettings" class="btn-save" data-i18n="saveSettings">Save Settings</button>
+      <div id="saveStatus" class="save-status hidden" data-i18n="saved">Saved!</div>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
