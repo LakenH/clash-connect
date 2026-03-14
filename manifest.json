@@ -5,7 +5,7 @@
   "description": "__MSG_extDescription__",
   "default_locale": "en",
   "permissions": ["proxy", "storage", "privacy"],
-  "host_permissions": ["http://ip-api.com/*"],
+  "host_permissions": ["http://ip-api.com/*", "https://api6.ipify.org/*"],
   "background": {
     "service_worker": "background.js"
   },

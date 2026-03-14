@@ -109,6 +109,18 @@ h1 {
   text-overflow: ellipsis;
 }
 
+/* Warning box (IPv6 mismatch) */
+.warning-box {
+  margin-top: 6px;
+  padding: 6px 8px;
+  background: #3a351c;
+  border: 1px solid #6b5c2c;
+  border-radius: 6px;
+  color: #e8c84a;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
 /* Error box */
 .error-box {
   margin-top: 8px;

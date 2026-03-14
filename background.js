@@ -7,8 +7,16 @@ const DEFAULTS = {
   exitIP: null,
   country: null,
   countryCode: null,
+  city: null,
+  region: null,
   timezone: null,
   locale: null,
+  isp: null,
+  ipv6: null,
+  ipv6Country: null,
+  ipv6CountryCode: null,
+  ipv6Isp: null,
+  ipv6Mismatch: null,
   iconColor: "dark"
 };
 
@@ -112,21 +120,77 @@ function setBadge(countryCode) {
 async function fetchExitIP() {
   try {
     const resp = await fetch(
-      "http://ip-api.com/json/?fields=query,country,countryCode,timezone"
+      "http://ip-api.com/json/?fields=query,country,countryCode,city,regionName,timezone,isp"
     );
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const data = await resp.json();
     const locale = COUNTRY_LOCALE_MAP[data.countryCode] ||
       `en-${data.countryCode}`;
-    return {
+    const result = {
       exitIP: data.query,
       country: data.country,
       countryCode: data.countryCode,
+      city: data.city || null,
+      region: data.regionName || null,
       timezone: data.timezone,
-      locale: locale
+      locale: locale,
+      isp: data.isp || null,
+      ipv6: null,
+      ipv6Country: null,
+      ipv6CountryCode: null,
+      ipv6Isp: null,
+      ipv6Mismatch: null
     };
+
+    // Check for IPv6 — api64.ipify.org returns IPv6 when available
+    const v6 = await fetchIPv6Info(data.countryCode, data.isp);
+    if (v6) Object.assign(result, v6);
+
+    return result;
   } catch (e) {
     console.error("IP lookup failed:", e);
+    return null;
+  }
+}
+
+function fetchWithTimeout(url, timeoutMs = 5000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
+async function fetchIPv6Info(exitCountryCode, exitIsp) {
+  try {
+    // api6.ipify.org is IPv6-only — only succeeds if IPv6 connectivity exists
+    const resp = await fetchWithTimeout("https://api6.ipify.org?format=json");
+    if (!resp.ok) return null;
+    const { ip } = await resp.json();
+    if (!ip) return null;
+
+    // Look up the IPv6 address via ip-api
+    const geoResp = await fetchWithTimeout(
+      `http://ip-api.com/json/${ip}?fields=country,countryCode,isp`
+    );
+    if (!geoResp.ok) return { ipv6: ip };
+    const geo = await geoResp.json();
+
+    const mismatches = [];
+    if (geo.countryCode && geo.countryCode !== exitCountryCode) {
+      mismatches.push("country");
+    }
+    if (geo.isp && exitIsp && geo.isp !== exitIsp) {
+      mismatches.push("ISP");
+    }
+
+    return {
+      ipv6: ip,
+      ipv6Country: geo.country || null,
+      ipv6CountryCode: geo.countryCode || null,
+      ipv6Isp: geo.isp || null,
+      ipv6Mismatch: mismatches.length > 0 ? mismatches.join(", ") : null
+    };
+  } catch (e) {
+    // No IPv6 connectivity — not an error, just means no IPv6
     return null;
   }
 }
@@ -156,8 +220,16 @@ async function handleMessage(msg) {
         exitIP: data.exitIP,
         country: data.country,
         countryCode: data.countryCode,
+        city: data.city,
+        region: data.region,
         timezone: data.timezone,
         locale: data.locale,
+        isp: data.isp,
+        ipv6: data.ipv6,
+        ipv6Country: data.ipv6Country,
+        ipv6CountryCode: data.ipv6CountryCode,
+        ipv6Isp: data.ipv6Isp,
+        ipv6Mismatch: data.ipv6Mismatch,
         proxyError: data.proxyError || null,
         iconColor: data.iconColor || "dark"
       };
@@ -187,8 +259,16 @@ async function handleMessage(msg) {
         exitIP: null,
         country: null,
         countryCode: null,
+        city: null,
+        region: null,
         timezone: null,
         locale: null,
+        isp: null,
+        ipv6: null,
+        ipv6Country: null,
+        ipv6CountryCode: null,
+        ipv6Isp: null,
+        ipv6Mismatch: null,
         proxyError: null
       });
       return { success: true };
