@@ -15,6 +15,10 @@ const saveSettingsBtn = document.getElementById("saveSettings");
 const saveStatus = document.getElementById("saveStatus");
 const refreshBtn = document.getElementById("refreshBtn");
 const localeEl = document.getElementById("locale");
+const ispEl = document.getElementById("isp");
+const ipv6Row = document.getElementById("ipv6Row");
+const ipv6El = document.getElementById("ipv6");
+const ipv6Warning = document.getElementById("ipv6Warning");
 const iconColorSelect = document.getElementById("iconColor");
 
 // i18n helper
@@ -60,12 +64,34 @@ function updateStatusUI(data) {
   if (data.proxyEnabled && data.exitIP) {
     statusSection.classList.remove("hidden");
     exitIPEl.textContent = data.exitIP;
-    locationEl.textContent =
-      `${countryCodeToFlag(data.countryCode)} ${data.country || "Unknown"}`;
+    const locationParts = [countryCodeToFlag(data.countryCode), data.country || "Unknown"];
+    if (data.city) locationParts.push(`— ${data.city}`);
+    if (data.region) locationParts.push(`(${data.region})`);
+    locationEl.textContent = locationParts.join(" ");
     timezoneEl.textContent = data.timezone || "—";
     localeEl.textContent = data.locale || "—";
+    ispEl.textContent = data.isp || "—";
+
+    // IPv6 — always show
+    ipv6Row.classList.remove("hidden");
+    ipv6El.textContent = data.ipv6 || t("ipv6None");
+    if (data.ipv6Mismatch) {
+      ipv6Warning.classList.remove("hidden");
+      const parts = [];
+      if (data.ipv6CountryCode && data.ipv6CountryCode !== data.countryCode) {
+        parts.push(`${t("location")}: ${countryCodeToFlag(data.ipv6CountryCode)} ${data.ipv6Country}`);
+      }
+      if (data.ipv6Isp && data.ipv6Isp !== data.isp) {
+        parts.push(`${t("isp")}: ${data.ipv6Isp}`);
+      }
+      ipv6Warning.textContent = `${t("ipv6Leak")} ${parts.join(", ")}`;
+    } else {
+      ipv6Warning.classList.add("hidden");
+    }
   } else {
     statusSection.classList.add("hidden");
+    ipv6Row.classList.add("hidden");
+    ipv6Warning.classList.add("hidden");
   }
 
   if (data.proxyError) {
